@@ -38,20 +38,32 @@ public class MyService extends BackgroundService {
 
 			boolean screenOff = this.intent.getBooleanExtra("screen_state", false);
 			Log.d(TAG, "ScreenOff is "+ screenOff);
-
-
-			if (screenOff && this.workCount > 10 && this.mHelloTo == "World"){
-				// // app is not launched yet
-				Log.d(TAG, "Service restarted. Launching...");
-				Intent it = new Intent("android.intent.action.VIEW");
-				Context context     = getApplicationContext();
-				it.setComponent(new ComponentName(context.getPackageName(), MainActivity.class.getName()));
-				it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				getApplicationContext().startActivity(it);
-				// call the activitiy (gotohome) or simulate system back
-			} else {
-				Log.d(TAG, "App is already launched.");
+			try {
+				result.put("ScreenOff", screenOff);
+				result.put("AppStartedByService", false);
+			} catch (JSONException e) {
 			}
+
+			if (this.mHelloTo == "World") {
+				Log.d(TAG, "HEED App is not launched yet.");
+
+				// launch if screen is off
+				if (screenOff){
+					Log.d(TAG, "Launching HEED Main Activity ...");
+					Intent it = new Intent("android.intent.action.VIEW");
+					Context context     = getApplicationContext();
+					it.setComponent(new ComponentName(context.getPackageName(), MainActivity.class.getName()));
+					it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					getApplicationContext().startActivity(it);
+					try {
+						result.put("AppStartedByService", true);
+					} catch (JSONException e) {
+					}
+					
+				} 
+
+			}
+
 		
 		
 
