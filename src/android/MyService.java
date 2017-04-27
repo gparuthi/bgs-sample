@@ -11,8 +11,10 @@ import org.json.JSONObject;
 
 import android.util.Log;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.BroadcastReceiver;
 
 import com.inteco.bleesmviewer.MainActivity;
 
@@ -24,19 +26,29 @@ public class MyService extends BackgroundService {
 	
 	private String mHelloTo = "World";
 
+	private int workCount = 0;
+
+	private Intent intent;
+
 	@Override
 	protected JSONObject doWork() {
+		this.workCount++;
+
 		JSONObject result = new JSONObject();
 
-		
-			if (this.mHelloTo == "World"){
-				// app is not launched yet
-				Log.d(TAG, "App is not launched yet. Launching...");
+			boolean screenOff = this.intent.getBooleanExtra("screen_state", false);
+			Log.d(TAG, "ScreenOff is "+ screenOff);
+
+
+			if (screenOff && this.workCount > 10 && this.mHelloTo == "World"){
+				// // app is not launched yet
+				Log.d(TAG, "Service restarted. Launching...");
 				Intent it = new Intent("android.intent.action.VIEW");
 				Context context     = getApplicationContext();
 				it.setComponent(new ComponentName(context.getPackageName(), MainActivity.class.getName()));
 				it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				getApplicationContext().startActivity(it);
+				// call the activitiy (gotohome) or simulate system back
 			} else {
 				Log.d(TAG, "App is already launched.");
 			}
@@ -88,6 +100,10 @@ public class MyService extends BackgroundService {
 	@Override
 	protected void onTimerEnabled() {
 		// TODO Auto-generated method stub
+		IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        BroadcastReceiver mReceiver = new ScreenReceiver();
+        registerReceiver(mReceiver, filter);
 		
 	}
 
@@ -95,6 +111,12 @@ public class MyService extends BackgroundService {
 	protected void onTimerDisabled() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		this.intent = intent;
+	    return super.onStartCommand(intent, flags, startId);
 	}
 
 
